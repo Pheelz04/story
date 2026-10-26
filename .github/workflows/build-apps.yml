@@ -49,18 +49,29 @@ jobs:
         run: npm run setup
       - name: Build the web app for desktop
         run: npm run build --prefix client -- --mode desktop
-      - name: Install Electron
-        run: npm install --prefix desktop
       - name: Build installer
+        # electron-builder on Windows scans files outside the app folder and stops at the
+        # repo's other files (e.g. chapter1.txt). So build in a clean folder of its own.
         run: |
           set -o pipefail
-          npm run dist:win --prefix desktop 2>&1 | tee build-installer.log
+          REPO="$(pwd)"
+          TMP="$(cygpath -u "$RUNNER_TEMP")"
+          npm run prepare-app --prefix desktop
+          mkdir -p "$TMP/lamba-build"
+          cp -r desktop "$TMP/lamba-build/desktop"
+          cd "$TMP/lamba-build/desktop"
+          npm ci
+          npx electron-builder --win nsis --x64 --publish never 2>&1 | tee "$TMP/build-installer.log"
+          mkdir -p "$REPO/desktop/release"
+          cp release/LAMBA-Setup-*.exe "$REPO/desktop/release/"
       - name: Report installer build error
         if: failure()
         run: |
           # Put the end of the log on the run's summary page so the error is easy to see.
-          tail -n 60 build-installer.log | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' > tail.txt
-          echo "::error title=Installer build failed::$(cat tail.txt)"
+          LOG="$(cygpath -u "$RUNNER_TEMP")/build-installer.log"
+          [ -f "$LOG" ] || { echo "::error title=Installer build failed::No build log was written; see the step above."; exit 0; }
+          tail -n 60 "$LOG" | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' > "$RUNNER_TEMP/tail.txt"
+          echo "::error title=Installer build failed::$(cat "$RUNNER_TEMP/tail.txt")"
       - uses: actions/upload-artifact@v5
         with:
           name: LAMBA-Windows-Installer
