@@ -50,7 +50,17 @@ jobs:
       - name: Install Electron
         run: npm install --prefix desktop
       - name: Build installer
-        run: npm run dist:win --prefix desktop
+        run: |
+          set -o pipefail
+          # Wine can need a display on some machines; use a virtual one when available.
+          RUN=""; command -v xvfb-run >/dev/null && RUN="xvfb-run -a"
+          $RUN npm run dist:win --prefix desktop 2>&1 | tee build-installer.log
+      - name: Report installer build error
+        if: failure()
+        run: |
+          # Put the end of the log on the run's summary page so the error is easy to see.
+          tail -n 60 build-installer.log | sed -e 's/%/%25/g' -e 's/\r//g' | awk '{printf "%s%%0A", $0}' > tail.txt
+          echo "::error title=Installer build failed::$(cat tail.txt)"
       - uses: actions/upload-artifact@v5
         with:
           name: LAMBA-Windows-Installer
