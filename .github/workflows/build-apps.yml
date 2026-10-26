@@ -25,24 +25,26 @@ on:
 permissions:
   contents: write
 
+# A new push cancels older runs still in progress.
+concurrency:
+  group: build-apps-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     name: Windows installer (.exe)
-    # Built on Linux with Wine — the same setup used to produce and test LAMBA-Setup-1.0.0.exe.
-    runs-on: ubuntu-24.04
-    env:
-      WINEDEBUG: -all
+    # Built natively on Windows: no Wine needed. The LAMBA icon and version details are
+    # stamped into LAMBA.exe by desktop/scripts/after-pack.cjs.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Install Wine (needed to stamp the icon and version into the .exe)
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends wine64 wine32:i386
-          wineboot -i || true
       - name: Install dependencies
         run: npm run setup
       - name: Build the web app for desktop
@@ -52,9 +54,7 @@ jobs:
       - name: Build installer
         run: |
           set -o pipefail
-          # Wine can need a display on some machines; use a virtual one when available.
-          RUN=""; command -v xvfb-run >/dev/null && RUN="xvfb-run -a"
-          $RUN npm run dist:win --prefix desktop 2>&1 | tee build-installer.log
+          npm run dist:win --prefix desktop 2>&1 | tee build-installer.log
       - name: Report installer build error
         if: failure()
         run: |
@@ -71,6 +71,7 @@ jobs:
     name: Android app (.apk)
     # Ubuntu 24.04 images come with the Android SDK preinstalled (ANDROID_HOME is set).
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       # Secrets can't be tested directly in `if:`, so expose this one as an env var.
       KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}

@@ -2,7 +2,7 @@
   "name": "lamba-desktop",
   "productName": "LAMBA",
   "version": "1.0.0",
-  "description": "LAMBA \u2014 AI Video Studio for Windows",
+  "description": "LAMBA — AI Video Studio for Windows",
   "author": "LAMBA",
   "private": true,
   "main": "main.cjs",
@@ -18,12 +18,13 @@
   },
   "devDependencies": {
     "electron": "32.3.3",
-    "electron-builder": "25.1.8"
+    "electron-builder": "25.1.8",
+    "resedit": "^1.7.2"
   },
   "build": {
     "appId": "com.lamba.studio",
     "productName": "LAMBA",
-    "copyright": "Copyright \u00a9 2026 LAMBA",
+    "copyright": "Copyright © 2026 LAMBA",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -48,7 +49,8 @@
         }
       ],
       "icon": "build/icon.ico",
-      "legalTrademarks": "LAMBA"
+      "legalTrademarks": "LAMBA",
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -74,6 +76,7 @@
         "provider": "generic",
         "url": "https://lamba.example.com/downloads"
       }
-    ]
+    ],
+    "afterPack": "./scripts/after-pack.cjs"
   }
 }
