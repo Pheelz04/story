@@ -1,0 +1,13 @@
+{
+  "appId": "com.lamba.studio",
+  "appName": "LAMBA",
+  "webDir": "dist-mobile",
+  "backgroundColor": "#0b0b10",
+  "android": {
+    "backgroundColor": "#0b0b10",
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

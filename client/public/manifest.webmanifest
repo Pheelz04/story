@@ -1,0 +1,30 @@
+{
+  "id": "/",
+  "name": "LAMBA — AI Video Studio",
+  "short_name": "LAMBA",
+  "description": "Generate cinematic AI videos from a text prompt and share them with the LAMBA community.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#0b0b10",
+  "theme_color": "#0b0b10",
+  "categories": ["photo", "entertainment", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Create a video", "short_name": "Create", "url": "/studio", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Community Gallery", "short_name": "Gallery", "url": "/gallery", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "My profile", "short_name": "Profile", "url": "/profile", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ],
+  "screenshots": [
+    { "src": "/screenshots/desktop-home.jpg", "sizes": "1440x900", "type": "image/jpeg", "form_factor": "wide", "label": "Home: type an idea, get a film" },
+    { "src": "/screenshots/desktop-studio.jpg", "sizes": "1440x900", "type": "image/jpeg", "form_factor": "wide", "label": "Studio: prompt workspace and your generations" },
+    { "src": "/screenshots/mobile-home.jpg", "sizes": "390x844", "type": "image/jpeg", "form_factor": "narrow", "label": "Home on mobile" },
+    { "src": "/screenshots/mobile-studio.jpg", "sizes": "390x844", "type": "image/jpeg", "form_factor": "narrow", "label": "Create a video on mobile" }
+  ]
+}

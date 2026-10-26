@@ -1,0 +1,18 @@
+{
+  "name": "lamba",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LAMBA \u2014 AI video studio (React + Node.js)",
+  "scripts": {
+    "setup": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently -n api,web -c magenta,yellow \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server",
+    "build:desktop": "npm run build --prefix client -- --mode desktop && npm install --prefix desktop && npm run dist:win --prefix desktop",
+    "build:android": "npm run android:sync --prefix client",
+    "desktop:start": "npm run build --prefix client -- --mode desktop && npm install --prefix desktop && npm start --prefix desktop"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

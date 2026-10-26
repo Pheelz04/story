@@ -1,0 +1,79 @@
+{
+  "name": "lamba-desktop",
+  "productName": "LAMBA",
+  "version": "1.0.0",
+  "description": "LAMBA \u2014 AI Video Studio for Windows",
+  "author": "LAMBA",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "prepare-app": "node scripts/prepare.mjs",
+    "start": "npm run prepare-app && electron .",
+    "dist:win": "npm run prepare-app && electron-builder --win nsis --x64 --publish never",
+    "dist:linux": "npm run prepare-app && electron-builder --linux AppImage --publish never"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "electron": "32.3.3",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.lamba.studio",
+    "productName": "LAMBA",
+    "copyright": "Copyright \u00a9 2026 LAMBA",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "package.json",
+      "server/**/*",
+      "client/dist/**/*"
+    ],
+    "asarUnpack": [
+      "server/public/samples/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "legalTrademarks": "LAMBA"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LAMBA",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "uninstallDisplayName": "LAMBA",
+      "artifactName": "LAMBA-Setup-${version}.exe",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon-512.png",
+      "category": "Video"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://lamba.example.com/downloads"
+      }
+    ]
+  }
+}
