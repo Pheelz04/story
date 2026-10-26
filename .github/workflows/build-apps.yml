@@ -1,10 +1,9 @@
 # Builds the LAMBA Windows installer (.exe) and Android app (.apk) on GitHub's free build machines.
 #
-# How to use:
-#   1. Push this project to a GitHub repository.
-#   2. Open the repo's "Actions" tab → "Build LAMBA apps" → "Run workflow".
-#   3. When it finishes (~10 min), download the files from the run's "Artifacts" section.
-#   Pushing a tag like v1.0.0 also publishes both files on a GitHub Release page.
+# It runs automatically when you push code changes, or manually:
+#   Actions tab → "Build LAMBA apps" → "Run workflow".
+# When it finishes (~10 min), download the files from the run's "Artifacts" section.
+# Pushing a tag like v1.0.0 also publishes both files on a GitHub Release page.
 #
 # Optional, for a signed release APK + Play Store bundle (.aab), add these repository secrets
 # (Settings → Secrets and variables → Actions):
@@ -17,7 +16,11 @@ name: Build LAMBA apps
 on:
   workflow_dispatch:
   push:
+    branches: [master, main]
     tags: ['v*']
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
 
 permissions:
   contents: write
@@ -25,12 +28,21 @@ permissions:
 jobs:
   windows:
     name: Windows installer (.exe)
-    runs-on: windows-latest
+    # Built on Linux with Wine — the same setup used to produce and test LAMBA-Setup-1.0.0.exe.
+    runs-on: ubuntu-24.04
+    env:
+      WINEDEBUG: -all
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
+      - name: Install Wine (needed to stamp the icon and version into the .exe)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends wine64 wine32:i386
+          wineboot -i || true
       - name: Install dependencies
         run: npm run setup
       - name: Build the web app for desktop
@@ -39,7 +51,7 @@ jobs:
         run: npm install --prefix desktop
       - name: Build installer
         run: npm run dist:win --prefix desktop
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: LAMBA-Windows-Installer
           path: desktop/release/LAMBA-Setup-*.exe
@@ -47,20 +59,24 @@ jobs:
 
   android:
     name: Android app (.apk)
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04 images come with the Android SDK preinstalled (ANDROID_HOME is set).
+    runs-on: ubuntu-24.04
     env:
       # Secrets can't be tested directly in `if:`, so expose this one as an env var.
       KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
-      - uses: actions/setup-java@v4
+          node-version: 22
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
+      - name: Check Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
       - name: Install dependencies
         run: npm run setup
       - name: Build the web app and copy it into the Android project
@@ -69,7 +85,7 @@ jobs:
         working-directory: client/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
           mkdir -p ../../dist-apps
           cp app/build/outputs/apk/debug/app-debug.apk ../../dist-apps/LAMBA.apk
       - name: Build signed release APK + AAB (only if signing secrets are set)
@@ -85,7 +101,7 @@ jobs:
           LAMBA_KEYSTORE_PATH="$RUNNER_TEMP/lamba.keystore" ./gradlew assembleRelease bundleRelease --no-daemon
           cp app/build/outputs/apk/release/app-release.apk ../../dist-apps/LAMBA-release.apk
           cp app/build/outputs/bundle/release/app-release.aab ../../dist-apps/LAMBA-release.aab
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: LAMBA-Android
           path: dist-apps/*
@@ -95,9 +111,9 @@ jobs:
     name: Publish GitHub Release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [windows, android]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: artifacts
           merge-multiple: true
